@@ -1,0 +1,26 @@
+[workspace]
+members = ["crates/*"]
+default-members = ["crates/paper-graph-cli"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+rust-version = "1.80"
+authors = ["QuadnucYard"]
+edition = "2021"
+
+[workspace.dependencies]
+paper-graph = { path = "crates/paper-graph" }
+
+biblatex = "0.10"
+clap = "4"
+colorous = { version = "1.0", default-features = false }
+graphviz-rust = { version = "0.9", default-features = false }
+palette = { version = "0.7", default-features = false, features = ["std"] }
+
+[profile.dev.package."*"]
+opt-level = 2
+
+[profile.release]
+lto = "thin"
+codegen-units = 1

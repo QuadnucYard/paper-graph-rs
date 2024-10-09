@@ -1,0 +1,17 @@
+[package]
+name = "paper-graph-cli"
+description = "The command line interface for paper-graph."
+version.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "paper-graph"
+path = "src/main.rs"
+doc = false
+
+[dependencies]
+paper-graph.workspace = true
+
+clap.workspace = true

@@ -1,0 +1,12 @@
+[package]
+name = "paper-graph"
+version.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+biblatex.workspace = true
+graphviz-rust.workspace = true
+palette.workspace = true
+colorous.workspace = true
