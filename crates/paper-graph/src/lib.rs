@@ -1,10 +1,12 @@
 mod printer;
+mod text;
 
 use std::collections::HashSet;
 
 use biblatex::{Bibliography, ChunksExt, Type};
 use palette::{Darken, Lighten, Srgb};
 use printer::{attr, attr_esc, digraph, edge, edge_attr, node, node_attr};
+use text::{trim_brace, wrap_text};
 
 #[derive(Debug, Default)]
 struct GraphData {
@@ -49,19 +51,7 @@ fn parse_graph(source: &str) -> GraphData {
     graph
 }
 
-fn trim_brace(s: &str) -> &str {
-    &s[1..s.len() - 1]
-}
-
-fn ell(s: &str, n: usize) -> String {
-    if s.len() <= n {
-        return s.to_string();
-    }
-    let pos = s[..n].rfind(' ').unwrap_or(n);
-    format!("{} ...", &s[..pos])
-}
-
-fn render_graph(bib: &Bibliography, graph: &GraphData) -> String {
+fn render_graph(bib: &Bibliography, graph: &GraphData, options: &StyleOptions) -> String {
     let gradient = colorous::WARM;
     let mut stmts = vec![
         attr("rankdir", "LR"),
@@ -82,8 +72,8 @@ fn render_graph(bib: &Bibliography, graph: &GraphData) -> String {
         let year_val = trim_brace(&year).parse::<i32>().unwrap();
         let lbl = format!(
             "{} | {} | {{{} | {}}}",
-            ell(trim_brace(&title), 32),
-            ell(trim_brace(&authors), 32),
+            wrap_text(trim_brace(&title), options.line_width),
+            wrap_text(trim_brace(&authors), options.line_width),
             trim_brace(&year),
             entry.entry_type
         );
@@ -116,6 +106,14 @@ fn render_graph(bib: &Bibliography, graph: &GraphData) -> String {
     digraph(&stmts)
 }
 
-pub fn generate_paper_graph(bib_source: &str, graph_source: &str) -> String {
-    render_graph(&parse_bib(bib_source), &parse_graph(graph_source))
+pub struct StyleOptions {
+    pub line_width: usize,
+}
+
+pub fn generate_paper_graph(
+    bib_source: &str,
+    graph_source: &str,
+    options: &StyleOptions,
+) -> String {
+    render_graph(&parse_bib(bib_source), &parse_graph(graph_source), options)
 }

@@ -1,5 +1,5 @@
 use clap::{arg, value_parser, Command};
-use paper_graph::generate_paper_graph;
+use paper_graph::{generate_paper_graph, StyleOptions};
 use std::{
     fs::File,
     io::{Read, Write},
@@ -42,12 +42,24 @@ fn main() {
                 .required(true)
                 .value_parser(value_parser!(PathBuf)),
         )
+        .arg(
+            arg!(--"line-width" <WIDTH> "The maximum line width in nodes")
+                .required(false)
+                .default_value("32"),
+        )
         .get_matches();
 
     let bib_file = matches.get_one::<PathBuf>("bib").unwrap();
     let graph_file = matches.get_one::<PathBuf>("graph").unwrap();
     let output_file = matches.get_one::<PathBuf>("output").unwrap();
 
-    let digraph = generate_paper_graph(&read_file(bib_file), &read_file(graph_file));
+    let options = StyleOptions {
+        line_width: matches
+            .get_one::<String>("line-width")
+            .unwrap()
+            .parse()
+            .unwrap(),
+    };
+    let digraph = generate_paper_graph(&read_file(bib_file), &read_file(graph_file), &options);
     write_file(output_file, &digraph);
 }
