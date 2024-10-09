@@ -7,6 +7,5 @@ edition.workspace = true
 
 [dependencies]
 biblatex.workspace = true
-graphviz-rust.workspace = true
 palette.workspace = true
 colorous.workspace = true

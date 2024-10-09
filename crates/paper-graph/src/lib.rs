@@ -1,10 +1,10 @@
+mod printer;
+
 use std::collections::HashSet;
 
 use biblatex::{Bibliography, ChunksExt, Type};
-use graphviz_rust::dot_generator::*;
-use graphviz_rust::dot_structures::*;
-use graphviz_rust::printer::{DotPrinter, PrinterContext};
 use palette::{Darken, Lighten, Srgb};
+use printer::{attr, attr_esc, digraph, edge, edge_attr, node, node_attr};
 
 #[derive(Debug, Default)]
 struct GraphData {
@@ -61,12 +61,12 @@ fn ell(s: &str, n: usize) -> String {
     format!("{} ...", &s[..pos])
 }
 
-fn create_graph(bib: &Bibliography, graph: &GraphData) -> Graph {
+fn render_graph(bib: &Bibliography, graph: &GraphData) -> String {
     let gradient = colorous::WARM;
     let mut stmts = vec![
-        Stmt::Attribute(attr!("rankdir", "LR")),
-        Stmt::GAttribute(GraphAttributes::Edge(vec![attr!("arrowsize", 0.5)])),
-        Stmt::GAttribute(GraphAttributes::Node(vec![attr!("width", 1)])),
+        attr("rankdir", "LR"),
+        edge_attr("arrowsize", &0.5.to_string()),
+        node_attr("width", &1.to_string()),
     ];
     for entry in bib.iter() {
         if graph.exclusions.contains(&entry.key) {
@@ -89,40 +89,33 @@ fn create_graph(bib: &Bibliography, graph: &GraphData) -> Graph {
         );
         let color = gradient.eval_continuous(((2024 - year_val) as f64 / 10.0).min(1.0));
         let color = Srgb::new(color.r, color.g, color.b).into_format::<f32>();
-        stmts.push(Stmt::Node(Node {
-            id: node_id!(esc entry.key),
-            attributes: {
-                let mut attrs = vec![
-                    attr!("label", esc lbl),
-                    attr!("shape", "record"),
-                    attr!("fillcolor", esc format!("#{:x}", color.lighten(0.8).into_format::<u8>())),
-                    attr!("color", esc format!("#{:x}", color.darken(0.2).into_format::<u8>())),
-                ];
-                if graph.seeds.contains(&entry.key) {
-                    attrs.push(attr!("fontcolor", "crimson"));
-                    attrs.push(attr!("style", esc "filled,bold"));
-                } else {
-                    attrs.push(attr!("style", esc "filled"));
-                }
-                attrs
-            },
-        }));
+
+        let mut attrs = vec![
+            attr_esc("label", &lbl),
+            attr("shape", "record"),
+            attr_esc(
+                "fillcolor",
+                &format!("#{:x}", color.lighten(0.8).into_format::<u8>()),
+            ),
+            attr_esc(
+                "color",
+                &format!("#{:x}", color.darken(0.2).into_format::<u8>()),
+            ),
+        ];
+        if graph.seeds.contains(&entry.key) {
+            attrs.push(attr("fontcolor", "crimson"));
+            attrs.push(attr_esc("style", "filled,bold"));
+        } else {
+            attrs.push(attr("style", "filled"));
+        }
+        stmts.push(node(&entry.key, &attrs));
     }
     for (u, v) in &graph.edges {
-        stmts.push(Stmt::Edge(edge!(node_id!(esc u) => node_id!(esc v))));
+        stmts.push(edge(u, v));
     }
-    Graph::DiGraph {
-        id: id!(""),
-        strict: false,
-        stmts,
-    }
-}
-
-fn render_graph(graph: &Graph) -> String {
-    graph.print(&mut PrinterContext::default())
+    digraph(&stmts)
 }
 
 pub fn generate_paper_graph(bib_source: &str, graph_source: &str) -> String {
-    let dot_graph = create_graph(&parse_bib(bib_source), &parse_graph(graph_source));
-    render_graph(&dot_graph)
+    render_graph(&parse_bib(bib_source), &parse_graph(graph_source))
 }

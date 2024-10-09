@@ -15,4 +15,4 @@ Options:
   -V, --version        Print version
 ```
 
-You should install graphviz `dot` executable before hand.
+This tool only create `.dot` file. You would generate other formats by yourself.

@@ -13,9 +13,8 @@ edition = "2021"
 paper-graph = { path = "crates/paper-graph" }
 
 biblatex = "0.10"
-clap = "4"
+clap = { version = "4", default-features = false, features = ["std", "help", "usage", "error-context", "suggestions"] }
 colorous = { version = "1.0", default-features = false }
-graphviz-rust = { version = "0.9", default-features = false }
 palette = { version = "0.7", default-features = false, features = ["std"] }
 
 [profile.dev.package."*"]
